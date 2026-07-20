@@ -11,17 +11,17 @@ def reset_all():
      st.session_state.acc = []
 
 with st.sidebar:
-    st.header("프로필")
-    user_name = st.text-input("닉네임", key="user_name")
-    weather = st.selectbox("오늘 날씨", ["맑음", "흐림", "비/눈", "매우 추움"], key="weather")
-    st.markdoowm("---")
-    st.info(f"반가워요, {user_name}님! 오늘날씨는 '{weather}'이네요.")
+     st.header("프로필")
+     user_name = st.text-input("닉네임", key="user_name")
+     weather = st.selectbox("오늘 날씨", ["맑음", "흐림", "비/눈", "매우 추움"], key="weather")
+     st.markdoowm("---")
+     st.info(f"반가워요, {user_name}님! 오늘날씨는 '{weather}'이네요.")
 
-        st.title("AI코디메이커")
-        st.write("사이드바에서 날씨를 먼저 선택하고 코디를 시작하세요!")   
+st.title("AI코디메이커")
+st.write("사이드바에서 날씨를 먼저 선택하고 코디를 시작하세요!")   
 
-    st.header("아이템 조합하기")
-    coll, col2 = st.columns
+st.header("아이템 조합하기")
+coll, col2 = st.columns
 with col1:
         st.subheader("상의")
         top_type = st.radio("종류"< ["후두티", "셔츠", "맨투맨", "반팔 티셔츠"], key="top_type")
