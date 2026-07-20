@@ -24,8 +24,8 @@ st.header("아이템 조합하기")
 coll, col2 = st.columns
 with col1:
         st.subheader("상의")
-        top_type = st.radio("종류"< ["후두티", "셔츠", "맨투맨", "반팔 티셔츠"], key="top_type")
-        top_color = st.select_slider('색상 톤", option=["밝음", "무난함", "어두움"], key="top_color")
+        top_type = st.radio("종류", ["후두티", "셔츠", "맨투맨", "반팔 티셔츠"], key="top_type")
+        top_color = st.select_slider("색상 톤", option=["밝음", "무난함", "어두움"], key="top_color")
                                      
 with col2: 
        st.subheader("하의")
