@@ -1,4 +1,4 @@
-import streamlist as st
+import streamlit as st
 
 st.title("카운터 앱")
 count = 0
