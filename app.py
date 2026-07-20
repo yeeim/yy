@@ -29,7 +29,7 @@ with col1:
                                      
 with col2: 
        st.subheader("하의")
-       bottom_type st.radio("종류", ["청바지", "슬랙스","트레이닝 팬츠","반바지"], key="bottom_type")
+       bottom_type = st.radio("종류", ["청바지", "슬랙스","트레이닝 팬츠","반바지"], key="bottom_type")
        bottom_color=st.select_slider("핏(fit)", options=["슬림", "레귤러", "오버핏"], key="bottom_color")
 
 st.header("디테일 추가")
