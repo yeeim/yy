@@ -7,5 +7,42 @@ with st.sidebar:
     st.markdoowm("---")
     st.info(f"반가워요, {user_name}님! 오늘날씨는 '{weater}'dlspdy.")
 
-                                    st.title("AI코디메이커")
-                                    st.write("사이드바에서 날씨를 먼저선택하고 코디를 시작하세요!")   
+        st.title("AI코디메이커")
+        st.write("사이드바에서 날씨를 먼저선택하고 코디를 시작하세요!")   
+
+    st.header("아이템 조합하기")
+    coll, col2 = st.columns
+with col1:
+        st.subheader("상의")
+        top_type = st.radio("종류"< ["후두티", "셔츠", "맨투맨", "반팔 티셔츠"]
+        top_color = st.select_slider('색상 톤", option=["밝음", "무난함", "어두움"])
+with col2: 
+       st.subheader("하의")
+       bottom_type st.radio("종류", ["청바지", "슬랙스","트레이닝 팬츠","반바지"]
+       bottom_color=st.select_slider("핏(fit)", options=["슬림", "레귤러", "오버핏"])
+
+st.header('디테일 추가")
+tab1, tab2=st.tabs(["신발", "엑세서리"])
+with tab1: 
+st.write=("오늘의 발걸음을 책임질 신발")
+shoes = st.selectbox("신발 선택", ["스니커즈", "운동화", "구두, "슬리퍼"])
+with st.expander("신발 선택 팁 보기"):
+st.info("너무 튀는 신발은 지양하도록해요!")
+with tab2:
+st.write("포인트 아이템:")
+acc+ st.multiselect("액세사리 스티일링 팁 보기"):
+st.warning("너무 많은 액세서리는 투머치가 될 수 있어요")
+st.markdown("---")
+if st.button("코디 완성하기"):
+ with st.container(border=Ture):
+ st.sunheader(f"{user_name}님의 오늘의 축복")
+ st.write(f"오늘 같은**{weatehr}**날씨에는 이렇게 입어보세요!")
+ st.markdown(f"""
+ * **상의:**{top_color} {top_type}
+ * **하의:**{bottom-color} {bottom_type}
+ * **매칭:**{shoes}와 {', '.join(acc) if acc else'악세사리 없이 깔끔하게!'}
+ """)
+ st.success("오늘의 스타일링이 완성되었습니다! 자신 있게외출하세요!")
+wirh st.expander('코디 연출 팁 영상 보기"):
+     st.video("https://www.youtube.com/watch?v-1kmz8yt1y1k")
+     st.write("전문가가 제안하는 코디 연출법을 참고해 보세요")
