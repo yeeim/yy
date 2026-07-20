@@ -13,9 +13,9 @@ def reset_all():
 with st.sidebar:
     st.header("프로필")
     user_name = st.text-input("닉네임", key="user_name")
-   weater = st.selectbox("오늘 날씨", ["맑음", "흐림", '비/눈", "매우 추움"], key=weather)
+   weather = st.selectbox("오늘 날씨", ["맑음", "흐림", '비/눈", "매우 추움"], key=weather)
     st.markdoowm("---")
-    st.info(f"반가워요, {user_name}님! 오늘날씨는 '{weater}'이네요.")
+    st.info(f"반가워요, {user_name}님! 오늘날씨는 '{weather}'이네요.")
 
         st.title("AI코디메이커")
         st.write("사이드바에서 날씨를 먼저 선택하고 코디를 시작하세요!")   
