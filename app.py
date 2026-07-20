@@ -32,7 +32,7 @@ with col2:
        bottom_type st.radio("종류", ["청바지", "슬랙스","트레이닝 팬츠","반바지"], key="bottom_type")
        bottom_color=st.select_slider("핏(fit)", options=["슬림", "레귤러", "오버핏"], key="bottom_color")
 
-st.header('디테일 추가")
+st.header("디테일 추가")
 tab1, tab2=st.tabs(["신발", "엑세서리"])
 with tab1: 
      st.write=("오늘의 발걸음을 책임질 신발")
