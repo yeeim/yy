@@ -1,93 +1,80 @@
 import streamlit as st
 from openai import OpenAI
 
+# 1. OpenAI 클라이언트 설정 (상단 위치)
+ai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-try:
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-except Exception:
-    client = None
+# 2. 세션 상태 초기화
+if 'todo_list' not in st.session_state:
+    st.session_state.todo_list = []
+if 'user_motto' not in st.session_state:
+    st.session_state.user_motto = "오늘도 화이팅!"
+if 'motto_updated' not in st.session_state:
+    st.session_state.motto_updated = False
 
+# 3. 할 일 추가 함수
+def add_todo():
+    task = st.session_state.todo_input
+    if task:
+        st.session_state.todo_list.append([task, False])
+        st.toast("할 일이 추가되었습니다!")
+        st.session_state.todo_input = ""
 
-if 'mind_logs' not in st.session_state:
-    st.session_state.mind_logs = []  # 습관 목록
-if 'affirmation_phrase' not in st.session_state:
-    st.session_state.affirmation_phrase = "나는 내 속도대로 성장하고 있다." # 확언
-if 'update_success_trigger' not in st.session_state:
-    st.session_state.update_success_trigger = False
-
-
-def commit_wellness_habit():
-    """입력된 마음 습관을 저장하는 함수"""
-    entry = st.session_state.habit_input_field
-    if entry:
-        st.session_state.mind_logs.append({"task": entry, "done": False})
-        st.toast("정서적 자산이 추가되었습니다! 🌱")
-        st.session_state.habit_input_field = ""
-
-@st.dialog("내면의 문장 재설정")
-def show_affirmation_editor():
-    """모달 팝업으로 확언 문구 수정"""
-    new_text = st.text_area("오늘 하루 나를 지켜줄 문장을 작성하세요.", 
-                           value=st.session_state.affirmation_phrase)
-    if st.button("문장 저장하기"):
-        st.session_state.affirmation_phrase = new_text
-        st.session_state.update_success_trigger = True
+# 4. 오늘의 다짐 수정 팝업창 (@st.dialog)
+@st.dialog("오늘의 다짐 수정")
+def edit_motto():
+    motto = st.text_input("나의 한 줄 좌우명을 적어주세요.")
+    if st.button("다짐 저장"):
+        st.session_state.user_motto = motto
+        st.session_state.motto_updated = True
         st.rerun()
 
+# --- 페이지 1: 오늘의 다짐 ---
+def page_motto():
+    st.header("📣 1. 오늘의 다짐")
+    st.info(f"현재 다짐: {st.session_state.user_motto}")
+    if st.button("다짐 수정하기"):
+        edit_motto()
+    if st.session_state.motto_updated:
+        st.success("새로운 좌우명이 등록되었습니다!")
+        st.session_state.motto_updated = False
+    st.markdown("---")
 
-
-def view_daily_affirmation():
-    """오늘의 확언 화면"""
-    st.subheader("📋 오늘의 마인드셋")
+# --- 페이지 2: 오늘의 할 일 ---
+def page_todo():
+    st.header("✅ 2. 오늘의 할 일")
+    st.write(f"현재 다짐: **{st.session_state.user_motto}**")
+    new_todo = st.text_input("추가할 할 일을 입력하세요", key="todo_input")
+    if st.button("추가하기", on_click=add_todo):
+        if new_todo == "":
+            st.warning("할 일을 입력하고 버튼을 눌러주세요!")
     
-    with st.container(border=True):
-        st.markdown(f"### \"{st.session_state.affirmation_phrase}\"")
-        if st.button("🖊️ 문장 수정"):
-            show_affirmation_editor()
-
-    if st.session_state.update_success_trigger:
-        st.success("내면의 문장이 성공적으로 업데이트되었습니다.")
-        st.session_state.update_success_trigger = False
-    
-    st.divider()
-    st.caption("작은 확언이 모여 단단한 자아를 만듭니다.")
-
-def view_habit_tracker():
-    """마음 실천 습관 화면"""
-    st.subheader("🌿 웰니스 루틴 관리")
-    
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.text_input("추가할 습관 (예: 명상 5분, 산책하기)", key="habit_input_field")
-    with col2:
-        st.write("##")
-        st.button("등록", on_click=commit_wellness_habit, use_container_width=True)
-
-    st.write("---")
-    
-    for idx, item in enumerate(st.session_state.mind_logs):
-        c1, c2, c3 = st.columns([0.1, 0.7, 0.2])
-        status = "✅" if item["done"] else "⏳"
-        c1.write(status)
-        c2.write(item["task"])
-        if not item["done"]:
-            if c3.button("달성", key=f"complete_{idx}"):
-                item["done"] = True
+    st.markdown("---")
+    for i in range(len(st.session_state.todo_list)):
+        col_task, col_btn, col_status = st.columns([4, 1, 1])
+        with col_task:
+            st.write(f"{i+1}. {st.session_state.todo_list[i][0]}")
+        with col_btn:
+            if st.button("완료", key=f"btn_{i}"):
+                st.session_state.todo_list[i][1] = True
                 st.rerun()
+        with col_status:
+            if st.session_state.todo_list[i][1]:
+                st.write("✅ **달성!**")
+    st.markdown("---")
 
-def view_analytics_report():
-    """성장 리포트 화면"""
-    st.subheader("📈 정서 성장 리포트")
-    
-    if not st.session_state.mind_logs:
-        st.info("기록된 데이터가 아직 없습니다. 웰니스 루틴에서 습관을 등록해 보세요!")
+# --- 페이지 3: 나의 갓생 지수 ---
+def page_report():
+    st.header("📈 3. 나의 갓생 지수")
+    if not st.session_state.todo_list:
+        st.write("아직 등록된 할 일이 없습니다.")
     else:
-        total = len(st.session_state.mind_logs)
-        completed = sum(1 for x in st.session_state.mind_logs if x["done"])
-        ratio = completed / total if total > 0 else 0
+        total = len(st.session_state.todo_list)
+        count = sum(1 for item in st.session_state.todo_list if item[1])
+        progress = (count / total) * 100
         
-        m1, m2 = st.columns(2)
-        m1.metric("총 실천 시도", f"{total}회")
-        m2.metric("달성한 루틴", f"{completed}회", delta=f"{ratio*100:.1f}%")
+        st.metric("오늘의 달성률", f"{progress:.1f}%")
+        # 에러가 났던 지점(따옴표 닫기 처리)
+        st.progress(progress / 100, text=f"달성률: {progress:.1f}%")
         
-        st.progress(ratio, text=f"마음 성장
+        if progress == 100:
