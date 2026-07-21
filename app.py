@@ -1,10 +1,10 @@
 import streamlit as st
 from openai import OpenAI
 
-# 1. API 클라이언트 설정 (상단 선언)
+# 1. API 클라이언트 설정 (슬라이드 3~4번 라인)
 ai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# 2. 세션 상태 초기화
+# 2. 세션 상태 초기화 (코드 상단 위치)
 if 'todo_list' not in st.session_state:
     st.session_state.todo_list = []
 if 'user_motto' not in st.session_state:
@@ -20,7 +20,7 @@ def add_todo():
         st.toast("할 일이 추가되었습니다!")
         st.session_state.todo_input = ""
 
-# 4. 다짐 수정 팝업 다이얼로그
+# 4. 다짐 수정 팝업 다이얼로그 (슬라이드 17~23번 라인)
 @st.dialog("오늘의 다짐 수정")
 def edit_motto():
     motto = st.text_input("나의 한 줄 좌우명을 적어주세요.")
@@ -29,7 +29,7 @@ def edit_motto():
         st.session_state.motto_updated = True
         st.rerun()
 
-# --- 1페이지: 오늘의 다짐 ---
+# --- 1페이지: 오늘의 다짐 (슬라이드 25~33번 라인) ---
 def page_motto():
     st.header("📣 1. 오늘의 다짐")
     st.info(f"현재 다짐: {st.session_state.user_motto}")
@@ -78,7 +78,6 @@ def page_report():
         st.metric("오늘의 달성률", f"{progress:.1f}%")
         st.progress(progress / 100)
         
-        # 들여쓰기(Indentation) 문제 해결 부분
         if progress == 100:
             st.balloons()
             st.success("모든 목표를 달성하셨습니다! 🏆")
@@ -87,8 +86,27 @@ def page_report():
             st.session_state.todo_list = []
             st.rerun()
 
-# --- 4페이지: AI 코치와 대화하기 ---
+# --- 4페이지: AI 코치와 대화하기 (슬라이드 80~88번 라인 수정) ---
 def page_ai_coach():
     st.header("🤖 AI 코치와 대화하기")
     prompt = st.text_input("질문을 입력하세요")
-    if st.button("보내기
+    if st.button("보내기"):  # <- 94번 라인 오타 및 괄호/따옴표 정상 수정 완료
+        if prompt:
+            response = ai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            st.write(response.choices[0].message.content)
+        else:
+            st.warning("질문을 입력해 주세요.")
+
+# 내비게이션 연결 (4개 페이지 정상 연결)
+pg = st.navigation([
+    st.Page(page_motto, title="오늘의 다짐", icon="📣"),
+    st.Page(page_todo, title="오늘의 할 일", icon="✅"),
+    st.Page(page_report, title="나의 갓생 지수", icon="📈"),
+    st.Page(page_ai_coach, title="AI 코치", icon="🤖")
+], position="top")
+
+st.title("🌱 갓생 살기 플래너")
+pg.run()
