@@ -1,48 +1,115 @@
 import streamlit as st
 
-with st.sidebar:
-    st.header("프로필")
-    user_name = st.text-input("닉네임")
-   weater = st.selectbox("오늘 날씨", ["맑음", "흐림", '비/눈", "메우 추움"])
-    st.markdoowm("---")
-    st.info(f"반가워요, {user_name}님! 오늘날씨는 '{weater}'dlspdy.")
+from openai import OpenAI
+ai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-        st.title("AI코디메이커")
-        st.write("사이드바에서 날씨를 먼저선택하고 코디를 시작하세요!")   
+if 'todo_list' not in st.session_state:
+    st.session_state.todo_list = []
+if 'user_motto' not in st.session_state:
+    st.session_state.user_motto = "오늘도 화이팅!"
+if 'motto_updated' not in st.session_state:
+    st.session_state.motto_updated = False
 
-    st.header("아이템 조합하기")
-    coll, col2 = st.columns
-with col1:
-        st.subheader("상의")
-        top_type = st.radio("종류"< ["후두티", "셔츠", "맨투맨", "반팔 티셔츠"]
-        top_color = st.select_slider('색상 톤", option=["밝음", "무난함", "어두움"])
-with col2: 
-       st.subheader("하의")
-       bottom_type st.radio("종류", ["청바지", "슬랙스","트레이닝 팬츠","반바지"]
-       bottom_color=st.select_slider("핏(fit)", options=["슬림", "레귤러", "오버핏"])
+def add_todo():
+    task = st.session_state.todo_input
+    if task:
+        st.session_state.todo_list.append([task, False])
+        st.toast("할 일이 추가되었습니다!")
+        st.session_state.todo_input = ""
 
-st.header('디테일 추가")
-tab1, tab2=st.tabs(["신발", "엑세서리"])
-with tab1: 
-st.write=("오늘의 발걸음을 책임질 신발")
-shoes = st.selectbox("신발 선택", ["스니커즈", "운동화", "구두, "슬리퍼"])
-with st.expander("신발 선택 팁 보기"):
-st.info("너무 튀는 신발은 지양하도록해요!")
-with tab2:
-st.write("포인트 아이템:")
-acc+ st.multiselect("액세사리 스티일링 팁 보기"):
-st.warning("너무 많은 액세서리는 투머치가 될 수 있어요")
-st.markdown("---")
-if st.button("코디 완성하기"):
- with st.container(border=Ture):
- st.sunheader(f"{user_name}님의 오늘의 축복")
- st.write(f"오늘 같은**{weatehr}**날씨에는 이렇게 입어보세요!")
- st.markdown(f"""
- * **상의:**{top_color} {top_type}
- * **하의:**{bottom-color} {bottom_type}
- * **매칭:**{shoes}와 {', '.join(acc) if acc else'악세사리 없이 깔끔하게!'}
- """)
- st.success("오늘의 스타일링이 완성되었습니다! 자신 있게외출하세요!")
-wirh st.expander('코디 연출 팁 영상 보기"):
-     st.video("https://www.youtube.com/watch?v-1kmz8yt1y1k")
-     st.write("전문가가 제안하는 코디 연출법을 참고해 보세요")
+@st.dialog("오늘의 다짐 수정")
+def edit_motto():
+    motto = st.text_input("나의 한 줄 좌우명을 적어주세요.")
+    if st.button("다짐 저장"):
+        st.session_state.user_motto = motto
+        st.session_state.motto_updated = True
+        st.rerun()
+
+def page_motto():
+    st.header("📣 1. 오늘의 다짐")
+    st.info(f"현재 다짐: {st.session_state.user_motto}")
+    if st.button("다짐 수정하기"):
+        edit_motto()
+    if st.session_state.motto_updated:
+        st.success("새로운 좌우명이 등록되었습니다!")
+        st.session_state.motto_updated = False
+    st.markdown("---")
+
+def page_todo():
+    st.header("✅ 2. 오늘의 할 일")
+    st.write(f"현재 다짐: **{st.session_state.user_motto}**")
+    new_todo = st.text_input("추가할 할 일을 입력하세요", key="todo_input")
+    st.button("추가하기", on_click=add_todo)
+    if new_todo == "":
+        st.warning("할 일을 입력하고 버튼을 눌러주세요!")
+    
+    st.markdown("---")
+    for i in range(len(st.session_state.todo_list)):
+        col_task, col_btn, col_status = st.columns([4, 1, 1])
+        with col_task:
+            st.write(f"{i+1}. {st.session_state.todo_list[i][0]}")
+        with col_btn:
+            if st.button("완료", key=f"btn_{i}"):
+                st.session_state.todo_list[i][1] = True
+                st.rerun()
+        with col_status:
+            if st.session_state.todo_list[i][1]:
+                st.write("✅ **달성!**")
+    st.markdown("---")
+
+def page_report():
+    st.header("📈 3. 나의 갓생 지수")
+    if not st.session_state.todo_list:
+        st.write("아직 등록된 할 일이 없습니다.")
+    else:
+        total = len(st.session_state.todo_list)
+        count = 0
+        for item in st.session_state.todo_list:
+            if item[1] == True:
+                count += 1
+        progress = (count / total) * 100
+        st.metric("오늘의 달성률", f"{progress:.1f}%")
+        st.progress(progress / 100)
+        if progress == 100:
+            st.balloons()
+            st.success("모든 목표를 달성하셨습니다! 🏆")
+        if st.button("기록 전체 초기화"):
+            st.session_state.todo_list = []
+            st.rerun()
+
+def page_ai_coach():
+    st.header("🧐 AI 코치와 대화하기")
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {"role": "system", "content": "너는 사용자의 할 일 목록과 달성 정도를 분석하여 조언하는 열정적인 코치야. 사용자가 더 멋진 삶을 살 수 있도록 명확한 조언과 응원해줘."}
+        ]
+        
+    for message in st.session_state.messages:
+        if message["role"] != "system":
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                
+    question = st.chat_input("질문을 입력하세요")
+    if question:
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+        with st.chat_message("assistant"):
+            status_context = f"현재 나의 할 일과 달성 여부: {st.session_state.todo_list}"
+            prompt = st.session_state.messages + [{"role": "system", "content": status_context}]
+            with st.spinner("AI 코치가 생각 중...🤔"):
+                response = ai_client.chat.completions.create(
+                    model="gpt-5.4-mini",
+                    messages=prompt)
+                ai_response = response.choices[0].message.content
+                st.markdown(ai_response)
+        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+
+pg = st.navigation([
+    st.Page(page_motto, title="오늘의 다짐", icon="📣"),
+    st.Page(page_todo, title="오늘의 할 일", icon="✅"),
+    st.Page(page_report, title="나의 갓생 지수", icon="📈"),
+    st.Page(page_ai_coach, title="AI 코칭", icon="🧐")], position="top")
+
+st.title("🌱 갓생 살기 플래너")
+pg.run()
