@@ -1,45 +1,93 @@
 import streamlit as st
 from openai import OpenAI
 
-# [1] 시스템 설정 및 보안 인증
-# 보안을 위해 API 키는 Secrets에서 관리하며, OpenAI 클라이언트를 초기화합니다.
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# [2] 애플리케이션 데이터 스토리지 (기존 코드와 차별화된 변수명 설계)
-# 단순 리스트가 아닌 '사용자 상태 객체'를 정의하여 관리하는 방식을 채택함.
+try:
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+except Exception:
+    client = None
+
+
 if 'mind_logs' not in st.session_state:
-    st.session_state.mind_logs = []  # 마음 습관 기록 (기존 todo_list)
+    st.session_state.mind_logs = []  # 습관 목록
 if 'affirmation_phrase' not in st.session_state:
-    st.session_state.affirmation_phrase = "나는 내 속도대로 성장하고 있다." # 긍정 문구
+    st.session_state.affirmation_phrase = "나는 내 속도대로 성장하고 있다." # 확언
 if 'update_success_trigger' not in st.session_state:
-    st.session_state.update_success_trigger = False # 알림 트리거
+    st.session_state.update_success_trigger = False
 
-# [3] 핵심 비즈니스 로직 함수
+
 def commit_wellness_habit():
-    """사용자가 입력한 습관을 데이터 저장소에 기록하는 함수"""
+    """입력된 마음 습관을 저장하는 함수"""
     entry = st.session_state.habit_input_field
     if entry:
-        # 데이터 구조화: [내용, 완료여부, 기록시간] 형태로 확장 가능
         st.session_state.mind_logs.append({"task": entry, "done": False})
-        st.toast("정서적 자산이 한 줄 추가되었습니다. 🌱")
+        st.toast("정서적 자산이 추가되었습니다! 🌱")
         st.session_state.habit_input_field = ""
 
 @st.dialog("내면의 문장 재설정")
 def show_affirmation_editor():
-    """모달 다이얼로그를 통한 데이터 업데이트 로직"""
+    """모달 팝업으로 확언 문구 수정"""
     new_text = st.text_area("오늘 하루 나를 지켜줄 문장을 작성하세요.", 
-                           placeholder=st.session_state.affirmation_phrase)
-    if st.button("문장 각인하기"):
+                           value=st.session_state.affirmation_phrase)
+    if st.button("문장 저장하기"):
         st.session_state.affirmation_phrase = new_text
         st.session_state.update_success_trigger = True
         st.rerun()
 
-# [4] 개별 인터페이스(View) 설계
+
 
 def view_daily_affirmation():
-    """첫 번째 화면: 긍정 확언 및 정서적 지지"""
+    """오늘의 확언 화면"""
     st.subheader("📋 오늘의 마인드셋")
     
-    # 카드 형태의 UI 구현
     with st.container(border=True):
         st.markdown(f"### \"{st.session_state.affirmation_phrase}\"")
+        if st.button("🖊️ 문장 수정"):
+            show_affirmation_editor()
+
+    if st.session_state.update_success_trigger:
+        st.success("내면의 문장이 성공적으로 업데이트되었습니다.")
+        st.session_state.update_success_trigger = False
+    
+    st.divider()
+    st.caption("작은 확언이 모여 단단한 자아를 만듭니다.")
+
+def view_habit_tracker():
+    """마음 실천 습관 화면"""
+    st.subheader("🌿 웰니스 루틴 관리")
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.text_input("추가할 습관 (예: 명상 5분, 산책하기)", key="habit_input_field")
+    with col2:
+        st.write("##")
+        st.button("등록", on_click=commit_wellness_habit, use_container_width=True)
+
+    st.write("---")
+    
+    for idx, item in enumerate(st.session_state.mind_logs):
+        c1, c2, c3 = st.columns([0.1, 0.7, 0.2])
+        status = "✅" if item["done"] else "⏳"
+        c1.write(status)
+        c2.write(item["task"])
+        if not item["done"]:
+            if c3.button("달성", key=f"complete_{idx}"):
+                item["done"] = True
+                st.rerun()
+
+def view_analytics_report():
+    """성장 리포트 화면"""
+    st.subheader("📈 정서 성장 리포트")
+    
+    if not st.session_state.mind_logs:
+        st.info("기록된 데이터가 아직 없습니다. 웰니스 루틴에서 습관을 등록해 보세요!")
+    else:
+        total = len(st.session_state.mind_logs)
+        completed = sum(1 for x in st.session_state.mind_logs if x["done"])
+        ratio = completed / total if total > 0 else 0
+        
+        m1, m2 = st.columns(2)
+        m1.metric("총 실천 시도", f"{total}회")
+        m2.metric("달성한 루틴", f"{completed}회", delta=f"{ratio*100:.1f}%")
+        
+        st.progress(ratio, text=f"마음 성장
