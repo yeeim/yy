@@ -1,6 +1,6 @@
 import streamlit as st
-from openai import OpenAI
 
+from openai import OpenAI
 ai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if 'todo_list' not in st.session_state:
@@ -19,7 +19,7 @@ def add_todo():
 
 @st.dialog("오늘의 다짐 수정")
 def edit_motto():
-    motto = st.text_input("나의 한 줄 좌우명을 적어주세요.", value=st.session_state.user_motto)
+    motto = st.text_input("나의 한 줄 좌우명을 적어주세요.")
     if st.button("다짐 저장"):
         st.session_state.user_motto = motto
         st.session_state.motto_updated = True
@@ -39,10 +39,9 @@ def page_todo():
     st.header("✅ 2. 오늘의 할 일")
     st.write(f"현재 다짐: **{st.session_state.user_motto}**")
     new_todo = st.text_input("추가할 할 일을 입력하세요", key="todo_input")
-    
-    if st.button("추가하기", on_click=add_todo):
-        if new_todo == "":
-            st.warning("할 일을 입력하고 버튼을 눌러주세요!")
+    st.button("추가하기", on_click=add_todo)
+    if new_todo == "":
+        st.warning("할 일을 입력하고 버튼을 눌러주세요!")
     
     st.markdown("---")
     for i in range(len(st.session_state.todo_list)):
@@ -82,16 +81,12 @@ def page_ai_coach():
     st.header("🤖 AI 코치와 대화하기")
     prompt = st.text_input("질문을 입력하세요")
     if st.button("보내기"):
-        if prompt:
-            response = ai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            st.write(response.choices[0].message.content)
-        else:
-            st.warning("질문을 입력해 주세요.")
+        response = ai_client.responses.create(
+            model="gpt-5.4-mini",
+            input=prompt
+        )
+        st.write(response.output_text)
 
-# AI 코치 페이지를 내비게이션 항목에 추가
 pg = st.navigation([
     st.Page(page_motto, title="오늘의 다짐", icon="📣"),
     st.Page(page_todo, title="오늘의 할 일", icon="✅"),
