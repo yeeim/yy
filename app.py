@@ -22,7 +22,7 @@ if st.button("다짐 저장"):
     st.session_state.user_motto = motto
 def page_todo():
     st.header("오늘의 할 일")
-    sr.write(f"현재의 다짐:**{st.session_state.user_motto}**)
+    sr.write(f"현재의 다짐:**{st.session_state.user_motto}**")
     st.success("좌우명이 등록되었습니다!")
 st.markdown("---")
 
